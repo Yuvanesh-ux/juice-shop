@@ -103,6 +103,7 @@ router.post('/', (req: Request<Record<string, unknown>, Record<string, unknown>,
         deletionRequested: true
       })
 
+      security.authenticatedUsers.revoke(req.cookies.token)
       res.clearCookie('token')
 
       const themeKey = config.get<string>('application.theme') as keyof typeof themes

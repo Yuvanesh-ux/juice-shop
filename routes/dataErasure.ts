@@ -101,11 +101,14 @@ router.post('/', (req: Request<Record<string, unknown>, Record<string, unknown>,
       }
 
       if (req.body.layout) {
-        const filePath: string = path.resolve(req.body.layout).toLowerCase()
+        const viewsDir: string = path.resolve('views')
+        const filePath: string = path.resolve(viewsDir, req.body.layout).toLowerCase()
+        const projectRoot: string = path.resolve('.').toLowerCase()
         const isForbiddenFile: boolean = (filePath.includes('ftp') || filePath.includes('ctf.key') || filePath.includes('encryptionkeys'))
-        if (!isForbiddenFile) {
+        const isOutsideProject: boolean = !filePath.startsWith(projectRoot)
+        if (!isForbiddenFile && !isOutsideProject) {
           res.render('dataErasureResult', {
-            ...req.body,
+            layout: req.body.layout,
             ...themeVars
           }, (error, html) => {
             if (!html || error) {
@@ -121,7 +124,7 @@ router.post('/', (req: Request<Record<string, unknown>, Record<string, unknown>,
         }
       } else {
         res.render('dataErasureResult', {
-          ...req.body,
+          layout: false,
           ...themeVars
         })
       }

@@ -49,13 +49,13 @@ export const hmac = (data: string) => crypto.createHmac('sha256', 'pa4qacea4VK9t
 export const cutOffPoisonNullByte = (str: string) => {
   const nullByte = '%00'
   if (utils.contains(str, nullByte)) {
-    return str.substring(0, str.indexOf(nullByte))
-  }
-  return str
 }
 
 export const isAuthorized = () => expressJwt(({ secret: publicKey }) as any)
-export const denyAll = () => expressJwt({ secret: '' + Math.random() } as any)
+export const denyAll = () => (req: Request, res: Response, next: NextFunction) => { res.sendStatus(401) }
+export const authorize = (user = {}) => jwt.sign(user, privateKey, { expiresIn: '6h', algorithm: 'RS256' })
+export const verify = (token: string) => token ? (jws.verify as ((token: string, secret: string) => boolean))(token, publicKey) : false
+export const decode = (token: string) => { return jws.decode(token)?.payload }
 export const authorize = (user = {}) => jwt.sign(user, privateKey, { expiresIn: '6h', algorithm: 'RS256' })
 export const verify = (token: string) => token ? (jws.verify as ((token: string, secret: string) => boolean))(token, publicKey) : false
 export const decode = (token: string) => { return jws.decode(token)?.payload }

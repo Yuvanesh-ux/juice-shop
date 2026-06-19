@@ -390,8 +390,9 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
   /* SecurityQuestions: Only GET list of questions allowed. */
   app.post('/api/SecurityQuestions', security.denyAll())
   app.use('/api/SecurityQuestions/:id', security.denyAll())
-  /* SecurityAnswers: Only POST of answer allowed. */
+  /* SecurityAnswers: Only authenticated POST of answer allowed. */
   app.get('/api/SecurityAnswers', security.denyAll())
+  app.post('/api/SecurityAnswers', security.isAuthorized())
   app.use('/api/SecurityAnswers/:id', security.denyAll())
   /* REST API */
   app.use('/rest/user/authentication-details', security.isAuthorized())
@@ -502,18 +503,27 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
     { name: 'Hint', exclude: [], model: HintModel }
   ]
 
-  for (const { name, exclude, model, include } of autoModels) {
-    const resource = finale.resource({
-      model,
-      endpoints: [`/api/${name}s`, `/api/${name}s/:id`],
-      excludeAttributes: exclude,
-      pagination: false,
       include
     })
 
-    // create a wallet when a new user is registered using API
+    // create a wallet and security answer when a new user is registered using API
     if (name === 'User') { // vuln-code-snippet neutral-line registerAdminChallenge
       resource.create.send.before((req: Request, res: Response, context: { instance: { id: any }, continue: any }) => { // vuln-code-snippet vuln-line registerAdminChallenge
+        WalletModel.create({ UserId: context.instance.id }).catch((err: unknown) => {
+          console.log(err)
+        })
+        if (req.body.securityQuestion && req.body.securityAnswer) {
+          SecurityAnswerModel.create({
+            UserId: context.instance.id,
+            SecurityQuestionId: req.body.securityQuestion.id,
+            answer: req.body.securityAnswer
+          }).catch((err: unknown) => {
+            console.log(err)
+          })
+        }
+        return context.continue // vuln-code-snippet neutral-line registerAdminChallenge
+      }) // vuln-code-snippet neutral-line registerAdminChallenge
+    } // vuln-code-snippet neutral-line registerAdminChallenge
         WalletModel.create({ UserId: context.instance.id }).catch((err: unknown) => {
           console.log(err)
         })

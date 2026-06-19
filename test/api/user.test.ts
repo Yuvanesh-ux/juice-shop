@@ -145,7 +145,7 @@ void describe('/api/Users', () => {
     assert.equal(res.body.data.role, 'deluxe')
   })
 
-  void it('POST new accounting user', async () => {
+  void it('POST new accounting user is blocked (role stripped)', async () => {
     const res = await request(app)
       .post('/api/Users')
       .set(jsonHeader)
@@ -160,7 +160,7 @@ void describe('/api/Users', () => {
     assert.equal(typeof res.body.data.createdAt, 'string')
     assert.equal(typeof res.body.data.updatedAt, 'string')
     assert.equal(res.body.data.password, undefined)
-    assert.equal(res.body.data.role, 'accounting')
+    assert.equal(res.body.data.role, 'customer')
   })
 
   void it('POST user not belonging to customer, deluxe, accounting, admin is forbidden', async () => {
